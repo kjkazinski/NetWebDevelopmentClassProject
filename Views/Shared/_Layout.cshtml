@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <!-- google font -->
+    <link href="https://fonts.googleapis.com/css?family=Fjalla+One" rel="stylesheet">
+    <!-- client -->
+    <link rel="stylesheet" href="/css/client.css" />
+</head>
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index"><i class="far fa-compass"></i> Northwind</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-database"></i> Products
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" asp-action="Category" asp-controller="Product"><i class="fas fa-list-ul"></i> Browse Categories</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" asp-action="Discounts" asp-controller="Product"><i class="fas fa-tag"></i> Current Discounts</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="customerDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-users"></i> Customers
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="customerDropdown">
+                        <a class="dropdown-item" asp-controller="Customer" asp-action="Account"><i class="fas fa-user"></i> Account</a>
+                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        {
+                            <a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+                        }
+                        else
+                        {
+                            <a class="dropdown-item" asp-controller="Customer" asp-action="Register"><i class="far fa-address-card"></i> Register</a>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="Login"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                        }
+                    </div>
+                </li>
+            </ul>
+            @if (User?.Identity?.IsAuthenticated ?? false)
+            {
+                <a class="signInOut mr-2" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+            }
+            else
+            {
+                <a class="signInOut mr-2" asp-controller="Account" asp-action="Login"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+            }
+        </div>
+    </nav>
+    <div class="container-fluid">
+        @RenderBody()
+    </div>
+    <!-- toast -->
+    <div id="toast" class="toast">
+        <div class="toast-header">
+            <strong class="mr-auto" id="product">Product Name</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body">
+            Discount Code: <strong id="code">CODE</strong>
+        </div>
+    </div>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <!-- popper & bootstrap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

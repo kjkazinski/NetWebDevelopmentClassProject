@@ -1,0 +1,27 @@
+﻿﻿body {
+    font-family: 'Fjalla One', sans-serif;
+}
+
+.signInOut {
+    color: rgba(255,255,255,.5);
+}
+
+.signInOut:hover {
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+}
+
+.discontinued {
+    opacity: .5;
+}
+
+
+#product_rows tr {
+    cursor: pointer;
+}
+
+.toast {
+    position: fixed;
+    top: 65px;
+    right: 10px;
+}
