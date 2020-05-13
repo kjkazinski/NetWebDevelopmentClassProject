@@ -70,3 +70,21 @@ SendGrid is a [cloud-based email service](https://sendgrid.com/solutions) that p
 ![Deployment Complete](Documentation\AzureSendGridDeploymentComplete.JPG "Deployment Complete")
 
 6. The SendGrid resource will be displayed on the Azure home page.
+
+## Configure SendGrid
+
+The instructions on the *[Create a secure ASP.NET MVC 5 web app with log in, email confirmation and password reset (C#)](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-web-app-with-email-confirmation-and-password-reset)* page are not current and updated instructions are located at *[Account confirmation and password recovery in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio#configure-email-provider)*.
+
+## Configure a eMail Provider
+
+The tutorial recommends using *SendGrid* as instead of *SMTP*.  The tutorial states that *SMTP* is difficult to configure and secure correctly.
+
+Create a class to fetch the secure email key. For this sample, create Services/*AuthMessageSenderOptions.cs*:
+
+```
+public class AuthMessageSenderOptions
+{
+    public string SendGridUser { get; set; }
+    public string SendGridKey { get; set; }
+}
+```

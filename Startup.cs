@@ -23,6 +23,8 @@ namespace Northwind
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+
+            servo
             services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration["Data:NWIdentity:ConnectionString"]));
             services.AddIdentity<AppUser, IdentityRole>(opts =>
             {
