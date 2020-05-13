@@ -88,3 +88,24 @@ public class AuthMessageSenderOptions
     public string SendGridKey { get; set; }
 }
 ```
+
+## Configure SendGrid user secrets
+
+Our project is **not** going to use the secrets manager and we will configure the service in the *startup.cs* file.
+
+## Install SendGrid
+
+From the package manager console type:
+```
+Install-Package SendGrid
+```
+
+or if using the .NET Command Line Interface (CLI):
+```
+dotnet add package SendGrid
+```
+
+or from the NuGet Package Manager:
+
+![NuGet Package Manager SendGrid](Documentation\NuGetPackageManager_SendGrid.JPG "NuGet Package Manager SendGrid")
+
