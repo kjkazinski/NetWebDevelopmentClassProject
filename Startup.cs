@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Northwind.Models;
+using Northwind.Services;
 
 namespace Northwind
 {
@@ -40,6 +42,13 @@ namespace Northwind
             // interface to the concrete class to ensure that when an INorthwindRepository
             // is requested, a new instance of EFNorthwindRepository is returned
             services.AddTransient<INorthwindRepository, EFNorthwindRepository>();
+            
+            // requires
+            // using Microsoft.AspNetCore.Identity.UI.Services;
+            // using Northwind.Services
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.Configure<AuthMessageSenderOptions>(Configuration);
+
             services.AddMvc();
         }
 

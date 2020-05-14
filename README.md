@@ -111,7 +111,7 @@ or from the NuGet Package Manager:
 
 ## Implement IEmailSender
 
-To Implement IEmailSender, create Services/EmailSender.cs with code similar to the following:
+To Implement IEmailSender, create *Services/EmailSender.cs* with code similar to the following:
 
 ```
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -159,3 +159,27 @@ namespace Northwind.Services
 ```
 
 Update the *Joe@contoso.com* to your email.
+
+## Configure startup to support email
+
+Add the following code to the ConfigureServices method in the Startup.cs file:
+
+- Add EmailSender as a transient service.
+- Register the AuthMessageSenderOptions configuration instance.
+
+Add the following using statements to the *startup.cs*:
+```
+    // using Microsoft.AspNetCore.Identity.UI.Services;
+    // using Northwind.Services;
+```
+
+Add the transient service to the statements to the *startup.cs*:
+
+```
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddTransient<IEmailSender, EmailSender>();
+    services.Configure<AuthMessageSenderOptions>(Configuration);
+
+}
+```
