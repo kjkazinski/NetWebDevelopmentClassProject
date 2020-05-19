@@ -43,7 +43,10 @@ namespace Northwind
             // interface to the concrete class to ensure that when an INorthwindRepository
             // is requested, a new instance of EFNorthwindRepository is returned
             services.AddTransient<INorthwindRepository, EFNorthwindRepository>();
-            
+
+            // Change all data protection token lifespans to 4 hours
+            services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(4));
+
             // requires
             // using Microsoft.AspNetCore.Identity.UI.Services;
             // using Northwind.Services

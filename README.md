@@ -221,3 +221,14 @@ services.ConfigureApplicationCookie(o => {
     o.SlidingExpiration = true;
 });
 ```
+
+## Change All Data Protection Token Lifespans
+
+From a security standpoint, tokens should always be set to the shortest interval that allows for good user experience and security.  Tokens should always have an expiration period, this helps avoid replay attacks.
+
+Change all data protection time out to *4 hours* in the *startup.cs* file's *ConfigureServices* method.
+
+``` C#
+    services.Configure<DataProtectionTokenProviderOptions>(o =>
+       o.TokenLifespan = TimeSpan.FromHours(4));
+```
