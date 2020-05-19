@@ -232,3 +232,73 @@ Change all data protection time out to *4 hours* in the *startup.cs* file's *Con
     services.Configure<DataProtectionTokenProviderOptions>(o =>
        o.TokenLifespan = TimeSpan.FromHours(4));
 ```
+
+## Change the Email Token Lifespan and Add a Custom Service Container
+
+The default email token lifespan is *one day*.  To change this value two custom classes, *DataProtectorTokenProvider* and *DataProtectionTokenProviderOptions*  need to be added.  These classes can be added in their own files or to the *startup.cs* file.
+
+Add the following using statements:
+
+``` C#
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+```
+
+The Northwind API project did not use logging but the *CustomEmailConfirmationTokenProvider* class has a logging element to help with troubleshooting.
+
+Add the classes to the end of the *startup.cs* file.
+
+``` C#
+public class CustomEmailConfirmationTokenProvider<TUser>  : DataProtectorTokenProvider<TUser> where TUser : class
+{
+    public CustomEmailConfirmationTokenProvider(IDataProtectionProvider dataProtectionProvider,
+        IOptions<EmailConfirmationTokenProviderOptions> options,
+        ILogger<DataProtectorTokenProvider<TUser>> logger)
+        : base(dataProtectionProvider, options)
+    {
+
+    }
+}
+
+public class EmailConfirmationTokenProviderOptions : DataProtectionTokenProviderOptions
+{
+    public EmailConfirmationTokenProviderOptions()
+    {
+        Name = "EmailDataProtectorTokenProvider";
+        TokenLifespan = TimeSpan.FromHours(4);
+    }
+}
+```
+
+The article uses the *AddDefaultIdentiy* service:
+
+``` C#
+services.AddDefaultIdentity<IdentityUser>(config =>
+{
+    config.SignIn.RequireConfirmedEmail = true;
+    config.Tokens.ProviderMap.Add("CustomEmailConfirmation",
+    new TokenProviderDescriptor(
+        typeof(CustomEmailConfirmationTokenProvider<IdentityUser>)));
+    config.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+}).AddEntityFrameworkStores<ApplicationDbContext>();
+```
+
+The Northwind API project uses the *AddIdentity* service.  Update the *AddIdentity* as follows:
+
+``` C#
+services.AddIdentity<AppUser, IdentityRole>(opts =>
+{
+    opts.User.RequireUniqueEmail = true;
+    opts.Password.RequiredLength = 6;
+    opts.Password.RequireNonAlphanumeric = false;
+    opts.Password.RequireLowercase = false;
+    opts.Password.RequireUppercase = false;
+    opts.Password.RequireDigit = false;
+    opts.Password.RequiredUniqueChars = 1;
+    opts.SignIn.RequireConfirmedEmail = true;
+    opts.Tokens.ProviderMap.Add("CustomEmailConfirmation", 
+        new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<IdentityUser>)));
+    opts.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+}).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+```

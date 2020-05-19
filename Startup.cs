@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Northwind.Models;
 using Northwind.Services;
 using System;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Northwind
 {
@@ -27,6 +30,7 @@ namespace Northwind
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration["Data:NWIdentity:ConnectionString"]));
+            
             services.AddIdentity<AppUser, IdentityRole>(opts =>
             {
                 opts.User.RequireUniqueEmail = true;
@@ -36,9 +40,15 @@ namespace Northwind
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
                 opts.Password.RequiredUniqueChars = 1;
+                opts.SignIn.RequireConfirmedEmail = true;
+                opts.Tokens.ProviderMap.Add("CustomEmailConfirmation", 
+                    new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<IdentityUser>)));
+                opts.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
             }).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+
             // this is where we use the config info for our connection string
             services.AddDbContext<NorthwindContext>(options => options.UseSqlServer(Configuration["Data:Northwind:ConnectionString"]));
+
             // since we created an interface for our repository, we must map the 
             // interface to the concrete class to ensure that when an INorthwindRepository
             // is requested, a new instance of EFNorthwindRepository is returned
@@ -73,6 +83,27 @@ namespace Northwind
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvcWithDefaultRoute();
+        }
+    }
+
+    public class CustomEmailConfirmationTokenProvider<TUser>
+                                           : DataProtectorTokenProvider<TUser> where TUser : class
+    {
+        public CustomEmailConfirmationTokenProvider(IDataProtectionProvider dataProtectionProvider,
+            IOptions<EmailConfirmationTokenProviderOptions> options,
+            ILogger<DataProtectorTokenProvider<TUser>> logger)
+                                              : base(dataProtectionProvider, options)
+        {
+
+        }
+    }
+
+    public class EmailConfirmationTokenProviderOptions : DataProtectionTokenProviderOptions
+    {
+        public EmailConfirmationTokenProviderOptions()
+        {
+            Name = "EmailDataProtectorTokenProvider";
+            TokenLifespan = TimeSpan.FromHours(4);
         }
     }
 }
