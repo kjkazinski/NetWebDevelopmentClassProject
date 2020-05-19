@@ -81,7 +81,7 @@ The tutorial recommends using *SendGrid* as instead of *SMTP*.  The tutorial sta
 
 Create a class to fetch the secure email key. For this sample, create Services/*AuthMessageSenderOptions.cs*:
 
-```
+``` C#
 public class AuthMessageSenderOptions
 {
     public string SendGridUser { get; set; }
@@ -96,12 +96,14 @@ Our project is **not** going to use the secrets manager and we will configure th
 ## Install SendGrid
 
 From the package manager console type:
-```
+
+``` .NET Core CLI
 Install-Package SendGrid
 ```
 
 or if using the .NET Command Line Interface (CLI):
-```
+
+``` .NET Core CLI
 dotnet add package SendGrid
 ```
 
@@ -113,7 +115,7 @@ or from the NuGet Package Manager:
 
 To Implement IEmailSender, create *Services/EmailSender.cs* with code similar to the following:
 
-```
+``` C#
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using SendGrid;
@@ -168,14 +170,15 @@ Add the following code to the ConfigureServices method in the Startup.cs file:
 - Register the AuthMessageSenderOptions configuration instance.
 
 Add the following using statements to the *startup.cs*:
-```
-    // using Microsoft.AspNetCore.Identity.UI.Services;
-    // using Northwind.Services;
+
+``` C#
+    using Microsoft.AspNetCore.Identity.UI.Services;
+    using Northwind.Services;
 ```
 
 Add the transient service to the statements to the *startup.cs*:
 
-```
+``` C#
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddTransient<IEmailSender, EmailSender>();
@@ -183,3 +186,25 @@ public void ConfigureServices(IServiceCollection services)
 
 }
 ```
+
+## Create SendGrid API Key
+
+1. From the Azure SendGrid Accounts page, click *Manage*.
+
+![SendGrid Manage](Documentation\SendGrid_Manage.JPG "SendGrid Manage")
+
+2. In the left menu dashboard select *Settings* and then *API Keys*
+
+![SendGrid Settings](Documentation\SendGrid_Settings.JPG "SendGrid Settings")
+
+3. After the *API Keys* screen appears, select ***Create API Key***.
+
+![SendGrid Create API](Documentation\SendGrid_CreateAPI.JPG "SendGrid Create API")
+
+4. On the *Create API Key* screen enter the API Key Name (e.g. ***NorthwindKey***) and select *Create & View*.
+
+![SendGrid Create & View](Documentation\SendGrid_CreateView.JPG "SendGrid Create & View")
+
+5. The created API Key will be displayed.  Copy the API key and keep it in a safe place.
+
+![SendGrid View Key](Documentation\SendGrid_ViewKey.JPG "SendGrid View Key")
