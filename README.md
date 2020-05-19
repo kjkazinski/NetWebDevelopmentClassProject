@@ -302,3 +302,15 @@ services.AddIdentity<AppUser, IdentityRole>(opts =>
     opts.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
 }).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
 ```
+
+## Register, Confirm Email, and Reset Password Testing
+
+If the project was created using the commands below, a web app with authentication using razor pages would have been created.
+
+```.NET Core CLI
+dotnet new webapp -au Individual -uld -o WebPWrecover
+cd WebPWrecover
+dotnet run
+```
+
+The project could have been tested, but as this project used the *Northwind database class project* the project does **not** send the confirmation email and a few more steps will be required to "wire up" the project.
