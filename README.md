@@ -208,3 +208,16 @@ public void ConfigureServices(IServiceCollection services)
 5. The created API Key will be displayed.  Copy the API key and keep it in a safe place.
 
 ![SendGrid View Key](Documentation\SendGrid_ViewKey.JPG "SendGrid View Key")
+
+## Email Activity Timeout
+
+The default inactivity time out is *14 days*. To change the default to *10* days use the **Configure Application Cookie** service in the *startup.cs* file and add a reference to the *system* namespace.
+
+``` C#
+using system;
+
+services.ConfigureApplicationCookie(o => {
+    o.ExpireTimeSpan = TimeSpan.FromDays(10);
+    o.SlidingExpiration = true;
+});
+```

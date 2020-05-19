@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Northwind.Models;
 using Northwind.Services;
+using System;
 
 namespace Northwind
 {
@@ -48,6 +49,11 @@ namespace Northwind
             // using Northwind.Services
             services.AddTransient<IEmailSender, EmailSender>();
             services.Configure<AuthMessageSenderOptions>(Configuration);
+
+            services.ConfigureApplicationCookie(o => {
+                o.ExpireTimeSpan = TimeSpan.FromDays(10);
+                o.SlidingExpiration = true;
+            });
 
             services.AddMvc();
         }
