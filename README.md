@@ -91,7 +91,7 @@ public class AuthMessageSenderOptions
 
 ## Configure SendGrid user secrets
 
-Our project is **not** going to use the secrets manager and we will configure the service in the *startup.cs* file.
+Our project is **not** going to use the secrets manager and we will configure the service in the *Startup.cs* file.
 
 ## Install SendGrid
 
@@ -164,19 +164,19 @@ Update the *Joe@contoso.com* to your email.
 
 ## Configure startup to support email
 
-Add the following code to the ConfigureServices method in the Startup.cs file:
+Add the following code to the ConfigureServices method in the *Startup.cs* file:
 
 - Add EmailSender as a transient service.
 - Register the AuthMessageSenderOptions configuration instance.
 
-Add the following using statements to the *startup.cs*:
+Add the following using statements to the *Startup.cs*:
 
 ``` C#
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Northwind.Services;
 ```
 
-Add the transient service to the statements to the *startup.cs*:
+Add the transient service to the statements to the *Startup.cs*:
 
 ``` C#
 public void ConfigureServices(IServiceCollection services)
@@ -211,7 +211,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ## Email Activity Timeout
 
-The default inactivity time out is *14 days*. To change the default to *10* days use the **Configure Application Cookie** service in the *startup.cs* file and add a reference to the *system* namespace.
+The default inactivity time out is *14 days*. To change the default to *10* days use the **Configure Application Cookie** service in the *Startup.cs* file and add a reference to the *system* namespace.
 
 ``` C#
 using system;
@@ -226,7 +226,7 @@ services.ConfigureApplicationCookie(o => {
 
 From a security standpoint, tokens should always be set to the shortest interval that allows for good user experience and security.  Tokens should always have an expiration period, this helps avoid replay attacks.
 
-Change all data protection time out to *4 hours* in the *startup.cs* file's *ConfigureServices* method.
+Change all data protection time out to *4 hours* in the *Startup.cs* file's *ConfigureServices* method.
 
 ``` C#
     services.Configure<DataProtectionTokenProviderOptions>(o =>
@@ -235,7 +235,7 @@ Change all data protection time out to *4 hours* in the *startup.cs* file's *Con
 
 ## Change the Email Token Lifespan and Add a Custom Service Container
 
-The default email token lifespan is *one day*.  To change this value two custom classes, *DataProtectorTokenProvider* and *DataProtectionTokenProviderOptions*  need to be added.  These classes can be added in their own files or to the *startup.cs* file.
+The default email token lifespan is *one day*.  To change this value two custom classes, *DataProtectorTokenProvider* and *DataProtectionTokenProviderOptions*  need to be added.  These classes can be added in their own files or to the *Startup.cs* file.
 
 Add the following using statements:
 
@@ -247,7 +247,7 @@ using Microsoft.Extensions.Logging;
 
 The Northwind API project did not use logging but the *CustomEmailConfirmationTokenProvider* class has a logging element to help with troubleshooting.
 
-Add the classes to the end of the *startup.cs* file.
+Add the classes to the end of the *Startup.cs* file.
 
 ``` C#
 public class CustomEmailConfirmationTokenProvider<TUser>  : DataProtectorTokenProvider<TUser> where TUser : class
@@ -257,7 +257,6 @@ public class CustomEmailConfirmationTokenProvider<TUser>  : DataProtectorTokenPr
         ILogger<DataProtectorTokenProvider<TUser>> logger)
         : base(dataProtectionProvider, options)
     {
-
     }
 }
 
@@ -314,3 +313,162 @@ dotnet run
 ```
 
 The project could have been tested, but as this project used the *Northwind database class project* the project does **not** send the confirmation email and a few more steps will be required to "wire up" the project.
+
+### Changes to *Startup.cs*
+
+The example code uses the *IdentityUser* class but the Northwind API project created the *AppUser* class.  Change the *IdentityUser* to *AppUser*:
+
+``` C#
+new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<AppUser>)));
+opts.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+}).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+```
+
+``` C#
+services.AddTransient<CustomEmailConfirmationTokenProvider<AppUser>>();
+```
+
+In the *AuthMessageSenderOptions* services configuration, explicitly tell the *Configuration* method which section of the *appsettings.json* to read.
+
+``` C#
+services.Configure<AuthMessageSenderOptions>(Configuration.GetSection("Data:SendGrid"));
+```
+
+### Changes to *CustomerController.cs*
+
+Add the following *using* statements:
+
+``` C#
+using Microsoft.AspNetCore.WebUtilities;
+using Northwind.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using System.Text.Encodings.Web;
+using Microsoft.Extensions.Logging;
+```
+
+Add the following private classes:
+
+``` C#
+private IEmailSender emailSender;
+private ILogger logger;
+```
+
+Update the *CustomerController* constructor:
+
+``` C#
+public CustomerController(INorthwindRepository repo, UserManager<AppUser> usrMgr, IEmailSender emailSender, ILogger<CustomerController> logger)
+{
+    repository = repo;
+    userManager = usrMgr;
+    this.emailSender = emailSender;
+    this.logger = logger;
+}
+```
+
+Remove the requirement for the company name to be unique, as we are using the customers eamil, by deleting the following code:
+
+``` C#
+if (repository.Customers.Any(c => c.CompanyName == customer.CompanyName))
+{
+    ModelState.AddModelError("", "Company Name must be unique");
+}
+else
+{
+    ...
+}
+```
+
+Currently, the code does not send an email.  Add the following code to send the email prior to  writting the new customer to the database.
+
+``` C#
+// Send email
+logger.LogDebug("User created a new account with password.");
+
+logger.LogDebug("Sending email confirmation.");
+var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+code = WebEncoders.Base64UrlEncode(System.Text.Encoding.UTF8.GetBytes(code));
+
+var callbackUrl = Request.Scheme + "://" +
+                  Request.Host.Value +
+                  "/Account/ConfirmEmail?" +
+                  "userId=" + user.Id +
+                  "&code=" + code;
+
+await emailSender.SendEmailAsync(customer.Email, "Confirm your email",
+    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+// End Send Email
+
+// Create customer (Northwind)
+logger.LogDebug("Adding user to database.");
+repository.AddCustomer(customer);
+return RedirectToAction("Index", "Home");
+```
+
+The *callbackUrl* variable contains the *URL* where the confirmation is sent to.
+
+The base *URL* is creted by:
+
+``` C#
+Request.Scheme + "://" + Request.Host.Value + "/Account/ConfirmEmail?"
+```
+
+Resulting in ***http://localhost:50230/Account/ConfirmEmail***
+
+There are two parameters, *userId* and *code*:
+
+``` C#
+"userId=" + user.Id + "&code=" + code
+```
+
+Resulting in ***?userId=\<Value\>&code=\<Value\>***
+
+### Database Entry
+
+The database now contains the new customer but the *EmailConfirmed* field is set to *false*
+
+![Register Customer](Documentation\RegisterCustomer.JPG "Register Customer")
+
+### Add destination method to the *AccountController.cs*
+
+The confirmation email contains a link to confirm the customers email address.
+
+![Conformation eMail](Documentation\ConfirmationEmail.JPG "Conformation eMail")
+
+The route listed in the sending email  ***http://localhost:50230/Account/ConfirmEmail***.  There needs to be a needs to have a method in the *AccountController* that contains two paramaters to process the returning information.
+
+``` C#
+public async Task<IActionResult> ConfirmEmail(string userId, string code)
+{
+    if (userId == null || code == null)
+    {
+        return RedirectToAction("Index", "Home");
+    }
+
+    var user = await userManager.FindByIdAsync(userId);
+    if (user == null)
+    {
+        return NotFound($"Unable to load user with ID '{userId}'.");
+    }
+
+    code = System.Text.Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(code));
+    var result = await userManager.ConfirmEmailAsync(user, code);
+    string StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+    return RedirectToAction("Account", "Login");
+}
+```
+
+Until the user confirms the account registration, they will not be able to log in.  Currently the code simply states the *user name* or *password* is incorrect.
+
+![Conformation eMail Not Recieved](Documentation\ConfirmationEmilNotReceived.JPG "Conformation eMail Not Recieved")
+
+When the user clicks the confirmation, the database is updated to *True*.
+
+![Registered Customer Confirmed](Documentation\RegisterCustomerConfirmed.JPG "Confirmed Registered Customer")
+
+and the user is redirected to the login page.
+
+```C#
+return RedirectToAction("Account", "Login");
+```
+
+![Login Page](Documentation\LogIn.JPG "Login Page")

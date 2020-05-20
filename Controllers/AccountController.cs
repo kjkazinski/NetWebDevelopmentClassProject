@@ -52,5 +52,24 @@ namespace Northwind.Controllers
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{userId}'.");
+            }
+
+            code = System.Text.Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(code));
+            var result = await userManager.ConfirmEmailAsync(user, code);
+            string StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            return RedirectToAction("Login", "Account");
+        }
     }
 }

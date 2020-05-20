@@ -42,9 +42,11 @@ namespace Northwind
                 opts.Password.RequiredUniqueChars = 1;
                 opts.SignIn.RequireConfirmedEmail = true;
                 opts.Tokens.ProviderMap.Add("CustomEmailConfirmation", 
-                    new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<IdentityUser>)));
+                    new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<AppUser>)));
                 opts.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
             }).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+
+            services.AddTransient<CustomEmailConfirmationTokenProvider<AppUser>>();
 
             // this is where we use the config info for our connection string
             services.AddDbContext<NorthwindContext>(options => options.UseSqlServer(Configuration["Data:Northwind:ConnectionString"]));
@@ -61,7 +63,7 @@ namespace Northwind
             // using Microsoft.AspNetCore.Identity.UI.Services;
             // using Northwind.Services
             services.AddTransient<IEmailSender, EmailSender>();
-            services.Configure<AuthMessageSenderOptions>(Configuration);
+            services.Configure<AuthMessageSenderOptions>(Configuration.GetSection("Data:SendGrid"));
 
             services.ConfigureApplicationCookie(o => {
                 o.ExpireTimeSpan = TimeSpan.FromDays(10);
