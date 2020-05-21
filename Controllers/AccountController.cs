@@ -69,7 +69,7 @@ namespace Northwind.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult>SendPasswordReset(LoginModel details)
+        public async Task<IActionResult> SendPasswordReset(LoginModel details)
         {
             if ((details.Email == null) || (IsValidEmail(details.Email) == false))
             {
@@ -120,7 +120,7 @@ namespace Northwind.Controllers
             }
             code = System.Text.Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(code));
             var result = await userManager.ConfirmEmailAsync(user, code);
-            
+
             if (result.Succeeded == true)
             {
                 LoginModel theModel = new LoginModel();
@@ -138,6 +138,8 @@ namespace Northwind.Controllers
                 AppUser user = await userManager.FindByEmailAsync(details.Email);
                 if (user != null)
                 {
+                    // TODO:  Validate the password meets the requirement is start up.
+
                     // compute the new hash string
                     var newPasswordHash = userManager.PasswordHasher.HashPassword(user, details.Password);
                     user.PasswordHash = newPasswordHash;
@@ -149,12 +151,11 @@ namespace Northwind.Controllers
                     }
                     ViewBag.message = "Failed to update password.";
                     details.Password = null;
-                    return View(details);
+                    return View("PasswordReset", details);
                 }
             }
-            ViewBag.message = "Failed to update password.";
-            return View(details);
-            //return RedirectToAction("Login", "Account");
+            ViewBag.message = "Password can not be empty.";
+            return View("PasswordReset", details);
         }
 
         [Authorize]
