@@ -3,7 +3,7 @@
 
 <h2 class="mt-3"><i class="fas fa-sign-in-alt"></i> Sign In</h2>
 <div asp-validation-summary="All" class="text-danger"></div>
-<form asp-action="Login" method="post">
+<form method="post">
     <input type="hidden" name="returnUrl" value="@ViewBag.returnUrl" />
     <div class="form-group">
         <label asp-for="Email"></label>
@@ -13,5 +13,6 @@
         <label asp-for="Password"></label>
         <input asp-for="Password" class="form-control" />
     </div>
-    <button type="submit" class="btn btn-outline-primary">Sign In</button>
+    <button asp-action="Login" type="submit" class="btn btn-outline-primary">Sign In</button>
+    <button asp-action="SendPasswordReset" type="submit" class="btn btn-outline-primary">Reset Password</button>
 </form>
