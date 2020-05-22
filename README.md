@@ -2,9 +2,56 @@
 
 This is the final project for the ***.Net Web Development course 152-109-20086-20*** by Jerry Chiu and Ken Kazinski.
 
+## Table of Contents
+
+- [Source Information](#Source-Information)
+- [Requirements](#Requirements)
+- [Database Update](#Database-Update)
+- [Why Use Email Confirmation](#Why-use-email-confirmation)
+- [SendGrid](#SendGrid)
+  - [Create a SendGrid Account](#Create-a-SendGrid-Account)
+  - [Configure SendGrid](#Configure-SendGrid)
+- [Configure a eMail Provider](#Configure-a-eMail-Provider)
+  - Class AuthMessageSenderOptions
+- [Configure SendGrid User Secrets](#Configure-SendGrid-user-secrets)
+- [Install SendGrid](#Install-SendGrid)
+- [Implement IEmailSender](#Implement-IEmailSender)
+  - Class EmailSender : IEmailSender
+  - Task SendEmailAsync
+  - Task Execute
+- [Configure Startup to Support eMail](#Configure-Startup-to-Support-eMail)
+- [Create SendGrid API Key](#Create-SendGrid-API-Key)
+- [Set Email Activity Timeout](#Set-Email-Activity-Timeout)
+- [Change Data Protection Token Lifespans](#Change-Data-Protection-Token-Lifespans)
+- [Change the Email Token Lifespan and Add a Custom Service Container](#Change-the-Email-Token-Lifespan-and-Add-a-Custom-Service-Container)
+  - Class CustomEmailConfirmationTokenProvider
+  - Class EmailConfirmationTokenProviderOptions
+- [Register, Confirm Email, and Reset Password Testing](#Register,-Confirm-Email,-and-Reset-Password-Testing)
+- [Set Up Registration and Confirmation Email](#Set-Up-Registration-and-Confirmation-Email)
+  - [Changes to Startup.cs](#Changes-to-*Startup.cs*)
+  - [Changes to CustomerController.cs](#Changes-to-*CustomerController.cs*)
+- [Test Registration eMail](#Test-Registration-eMail)
+  - [Database Entry](## Database-Entry)
+- [Add destination method to the AccountController.cs](#Add-destination-method-to-the-*AccountController.cs*)
+  - Async Task<IActionResult> ConfirmEmail
+- [Send and Process Confirmation eMail](#Send-and-Process-Confirmation-eMail)
+- [Password Reset](#Password-Reset)
+  - [Create Password Reset View](#Create-Password-Reset-View)
+  -[Add Password Reset Method](#Add-Password-Reset Method)
+  - [Add Password Update Method](#Add-Password-Update-Method)
+  - [Verify New Password Requirements](#Verify-New-Password-Requirements)
+- [Test Password Reset](#TestPassword-Reset)
+  - [Passord Reset View](#Passord-Reset-View)
+- [Conclusion](#Conclusion)  
+
+---
+
+- [Source Information](#Source-Information)
+  - [Dependencies Title](#dependencies-title)
+
 ## Source Information
 
-We utilized the information from the microsoft website article *[Create a secure ASP.NET MVC 5 web app with log in, email confirmation and password reset (C#)](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-web-app-with-email-confirmation-and-password-reset)* to modifiy the module 13 Northwind API project.
+We utilized the information from the microsoft website article *[Create a secure ASP.NET MVC 5 web app with log in, email confirmation and password reset (C#)](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-web-app-with-email-confirmation-and-password-reset)* to modifiy the module 13 *Northwind API project*.
 
 ## Requirements
 
@@ -24,7 +71,7 @@ The **AspNetUsers Table**  contains the required field, *EmailConfirmed*, that w
 
 ![AspNetUsers Table](Documentation\AspNetUsersTable.JPG "AspNetUsers Table")
 
-## Why email confirmation
+## Why Use Email Confirmation
 
 Confirmation of an email account is considered a best practice.
 
@@ -71,7 +118,7 @@ SendGrid is a [cloud-based email service](https://sendgrid.com/solutions) that p
 
 6. The SendGrid resource will be displayed on the Azure home page.
 
-## Configure SendGrid
+### Configure SendGrid
 
 The instructions on the *[Create a secure ASP.NET MVC 5 web app with log in, email confirmation and password reset (C#)](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-web-app-with-email-confirmation-and-password-reset)* page are not current and updated instructions are located at *[Account confirmation and password recovery in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio#configure-email-provider)*.
 
@@ -89,7 +136,7 @@ public class AuthMessageSenderOptions
 }
 ```
 
-## Configure SendGrid user secrets
+## Configure SendGrid User Secrets
 
 Our project is **not** going to use the secrets manager and we will configure the service in the *Startup.cs* file.
 
@@ -162,7 +209,7 @@ namespace Northwind.Services
 
 Update the *Joe@contoso.com* to your email.
 
-## Configure startup to support email
+## Configure Startup to Support eMail
 
 Add the following code to the ConfigureServices method in the *Startup.cs* file:
 
@@ -209,7 +256,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ![SendGrid View Key](Documentation\SendGrid_ViewKey.JPG "SendGrid View Key")
 
-## Email Activity Timeout
+## Set Email Activity Timeout
 
 The default inactivity time out is *14 days*. To change the default to *10* days use the **Configure Application Cookie** service in the *Startup.cs* file and add a reference to the *system* namespace.
 
@@ -222,7 +269,7 @@ services.ConfigureApplicationCookie(o => {
 });
 ```
 
-## Change All Data Protection Token Lifespans
+## Change Data Protection Token Lifespans
 
 From a security standpoint, tokens should always be set to the shortest interval that allows for good user experience and security.  Tokens should always have an expiration period, this helps avoid replay attacks.
 
@@ -233,7 +280,7 @@ Change all data protection time out to *4 hours* in the *Startup.cs* file's *Con
        o.TokenLifespan = TimeSpan.FromHours(4));
 ```
 
-## Change the Email Token Lifespan and Add a Custom Service Container
+## Change the Email Token Lifespan
 
 The default email token lifespan is *one day*.  To change this value two custom classes, *DataProtectorTokenProvider* and *DataProtectionTokenProviderOptions*  need to be added.  These classes can be added in their own files or to the *Startup.cs* file.
 
@@ -313,6 +360,10 @@ dotnet run
 ```
 
 The project could have been tested, but as this project used the *Northwind database class project* the project does **not** send the confirmation email and a few more steps will be required to "wire up" the project.
+
+## Set Up Registration and Confirmation Email
+
+The *Northwind database class project* requires other changes to allow the user to register, send and recieve a conformation email
 
 ### Changes to *Startup.cs*
 
@@ -422,13 +473,17 @@ There are two parameters, *userId* and *code*:
 
 Resulting in ***?userId=\<Value\>&code=\<Value\>***
 
+## Test Registration eMail
+
+The proram is now ready to test registering, sending and receiving a confirmation eMail.
+
 ### Database Entry
 
 The database now contains the new customer but the *EmailConfirmed* field is set to *false*
 
 ![Register Customer](Documentation\RegisterCustomer.JPG "Register Customer")
 
-### Add destination method to the *AccountController.cs*
+## Add destination method to the *AccountController.cs*
 
 The confirmation email contains a link to confirm the customers email address.
 
@@ -457,6 +512,8 @@ public async Task<IActionResult> ConfirmEmail(string userId, string code)
 }
 ```
 
+## Send and Process Confirmation eMail
+
 Until the user confirms the account registration, they will not be able to log in.  Currently the code simply states the *user name* or *password* is incorrect.
 
 ![Conformation eMail Not Recieved](Documentation\ConfirmationEmilNotReceived.JPG "Conformation eMail Not Recieved")
@@ -472,3 +529,163 @@ return RedirectToAction("Account", "Login");
 ```
 
 ![Login Page](Documentation\LogIn.JPG "Login Page")
+
+## Password Reset
+
+The reset password functionality requires a reset page and changes to the *Account Controller*.
+
+Add a *Reset Password* button to the *Login.cshtml* file.
+
+``` C#
+    <button asp-action="Login" type="submit" class="btn btn-outline-primary">Sign In</button>
+    <button asp-action="SendPasswordReset" type="submit" class="btn btn-outline-primary">Reset Password</button>
+```
+
+![Log In Reset Password](Documentation\LogInResetPassword.JPG "Log In Reset Password")
+
+### Create Password Reset View
+
+Creae the *PasswordReset.cshtml* file in the *Views\Account* folder.
+
+``` html
+@using Northwind.Models
+@model LoginModel
+
+<h2 class="mt-3"><i class="fas fa-sign-in-alt"></i> Password Reset</h2>
+<form asp-action="PasswordUpdate">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Email" />
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-outline-primary">Update Password</button>
+</form>
+<div>@ViewBag.message</div>
+```
+### Add Password Reset Method
+
+A destination end point needs to be created to receive the message once the user clicks the link to confirm they wish to change their password.
+
+``` C#
+        [HttpGet]
+        public async Task<IActionResult> PasswordReset(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            code = System.Text.Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(code));
+            var result = await userManager.ConfirmEmailAsync(user, code);
+
+            if (result.Succeeded == true)
+            {
+                LoginModel theModel = new LoginModel();
+                theModel.Email = user.Email;
+                return View(theModel);
+            }
+            return RedirectToAction("Login", "Account");
+        }
+```
+
+### Add Password Update Method
+
+Update the *PasswordUpdate* method in the *AccountController*.
+
+``` C#
+[HttpPost]
+public async Task<IActionResult> PasswordUpdate(LoginModel details)
+{
+    if (ModelState.IsValid)
+    {
+        AppUser user = await userManager.FindByEmailAsync(details.Email);
+        if (user != null)
+        {
+            // TODO:  Validate the password meets the requirement is start up.
+
+            // compute the new hash string
+            var newPasswordHash = userManager.PasswordHasher.HashPassword(user, details.Password);
+            user.PasswordHash = newPasswordHash;
+
+            var result = await userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            ViewBag.message = "Failed to update password.";
+            details.Password = null;
+            return View("PasswordReset", details);
+        }
+    }
+    ViewBag.message = "Password can not be empty.";
+    return View("PasswordReset", details);
+}
+```
+
+### Verify New Password Requirements
+
+During the testing it was discovered that the password requirements were not being tested.  Add the following code to the *PasswordUpdate* method.
+
+``` C#
+// Validate the password meets the requirements set up in startup.cs
+var PassordValid = (await userManager.PasswordValidators[0].ValidateAsync(userManager, user, details.Password)).Succeeded;
+if (PassordValid == false)
+{
+    ViewBag.message = "Incorrect password format.";
+    details.Password = null;
+    return View("PasswordReset", details);
+}
+```
+
+## Test Password Reset
+
+Fill in the eMail adderss where the reset and click *Reset Password*.  The *PasswordUpdate* function verifies the user and then sends a password reset eMail to the eMail address.
+
+The user will recieve an eMail with a link to reset the password.
+
+![Confirm Password Reset Email](Documentation\ConfirmPasswordResetEmail.JPG "ConfirmPasswordResetEmail.JPG")
+
+The *click here link* contains the destination URL and end point, the *User Id* and a *code*.
+
+``` CLI
+http://localhost:50230/Account/PasswordReset
+
+?userId=<GUID>
+
+&code=<Code>
+```
+
+When the user clicks the link they are taken to the *Reset Password* view.
+
+### Passord Reset View
+
+![Password Reset View](Documentation\PasswordResetView.JPG "Password Reset View")
+
+The view uses the same *LoginModel* that the *SignIn* view uses.
+
+``` html
+@using Northwind.Models
+@model LoginModel
+```
+
+This is accomplished in the *PasswordReset* method by returning a *LoginModel* to the view.
+
+``` C#
+LoginModel theModel = new LoginModel();
+theModel.Email = user.Email;
+return View(theModel);
+```
+
+Once the user enters a passoword and clicks *Update Password* te new password is written to the database.
+
+## Conclusion
+
+The completes the changes in the *Northwind API project* to send and recevie a registartion eMail and add password reset functionality.
