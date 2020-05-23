@@ -25,7 +25,7 @@ namespace Northwind.Services
             var client = new SendGridClient(apiKey);
             var msg = new SendGridMessage()
             {
-                From = new EmailAddress("kkazinski@my.wctc.edu", Options.SendGridUser),
+                From = new EmailAddress("jchiu1@my.wctc.edu", Options.SendGridUser),
                 Subject = subject,
                 PlainTextContent = message,
                 HtmlContent = message
