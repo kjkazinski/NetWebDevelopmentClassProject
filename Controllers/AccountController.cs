@@ -6,6 +6,7 @@ using Northwind.Models;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using System;
 
 namespace Northwind.Controllers
 {
@@ -138,13 +139,20 @@ namespace Northwind.Controllers
                 AppUser user = await userManager.FindByEmailAsync(details.Email);
                 if (user != null)
                 {
-                    // TODO:  Validate the password meets the requirement is start up.
+                    // Validate the password meets the requirements set up in startup.cs
+                    var PassordValid = (await userManager.PasswordValidators[0].ValidateAsync(userManager, user, details.Password)).Succeeded;
+                    if (PassordValid == false)
+                    {
+                        ViewBag.message = "Incorrect password format.";
+                        details.Password = null;
+                        return View("PasswordReset", details);
+                    }
 
                     // compute the new hash string
                     var newPasswordHash = userManager.PasswordHasher.HashPassword(user, details.Password);
                     user.PasswordHash = newPasswordHash;
-                    var result = await userManager.UpdateAsync(user);
 
+                    var result = await userManager.UpdateAsync(user);
                     if (result.Succeeded)
                     {
                         return RedirectToAction("Login", "Account");
@@ -156,6 +164,11 @@ namespace Northwind.Controllers
             }
             ViewBag.message = "Password can not be empty.";
             return View("PasswordReset", details);
+        }
+
+        private object ValidateAsync(object manager, AppUser user, object password)
+        {
+            throw new NotImplementedException();
         }
 
         [Authorize]
@@ -188,6 +201,17 @@ namespace Northwind.Controllers
             var result = await userManager.ConfirmEmailAsync(user, code);
             string StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
             return RedirectToAction("Login", "Account");
+        }
+    }
+
+    public class CustomPasswordValidator<TUser> : PasswordValidator<TUser>, IPasswordValidator<TUser> where TUser : class
+    {
+        public override Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
+        {
+            //built in identity options
+            //var builtIn = base.ValidateAsync(manager, user, password).Result;
+            // add your own logic to check the password and append it to builtIn
+            return base.ValidateAsync(manager, user, password);
         }
     }
 }
