@@ -49,7 +49,7 @@ namespace Northwind.Controllers
 
         public ViewResult AccessDenied() => View();
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, AllowAnonymous]
         public async Task<IActionResult> Login(LoginModel details, string returnUrl)
         {
             if (ModelState.IsValid)
